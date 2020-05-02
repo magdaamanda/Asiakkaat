@@ -5,45 +5,26 @@
 <head>
 <meta charset="ISO-8859-1">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<style>
-.a{
-	text-align: right;
-	background-color: green;
-	color: white;
-	height: 30px;
-	font-family: Arial, Helvetica, sans-serif;
-	padding: 5px 5px 5px 5px;
-}
-.b{
-	text-align: left;
-	background-color: green;
-	color: white;
-	height: 30px;
-	font-family: Arial, Helvetica, sans-serif;
-	padding: 5px 5px 5px 5px;
-}
-.c{
-	text-align: left;
-	background-color: white;
-	padding: 5px 5px 5px 5px;
-	border: 1px solid black;
-}
-</style>
+<link rel="stylesheet" type="text/css" href="css/main.css">
 <title>Insert title here</title>
 </head>
 <body>
 <table id="listaus">
 	<thead>
 		<tr>
-			<th class="a" colspan="2">Hakusana:</th>
-			<th class="b"><input type="text" id="hakusana"></th>
-			<th class="b"><input class="c" type="button" value="Hae" id="hakunappi"></th>
+			<th colspan="5" class="oikealle"><span id="uusiAsiakas">Lisää uusi asiakas</span></th>
 		</tr>
 		<tr>
-			<th class="b">Etunimi</th>
-			<th class="b">Sukunimi</th>
-			<th class="b">Puhelin</th>
-			<th class="b">Sposti</th>
+			<th colspan="3">Hakusana:</th>
+			<th><input type="text" id="hakusana"></th>
+			<th><input class="c" type="button" value="Hae" id="hakunappi"></th>
+		</tr>
+		<tr>
+			<th>Etunimi</th>
+			<th>Sukunimi</th>
+			<th>Puhelin</th>
+			<th>Sposti</th>
+			<th></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -52,6 +33,10 @@
 <script>
 $(document).ready(function(){
 
+	$("#uusiAsiakas").click(function(){
+		document.location="lisaaasiakas.jsp";
+	});
+	
 	haeAsiakkaat();
 	$("#hakunappi").click(function(){
 		//console.log($("#hakusana").val());
@@ -74,15 +59,30 @@ function haeAsiakkaat(){
 		success:function(result){
 			$.each(result.asiakkaat, function(i, field){
 				var htmlStr;
-				htmlStr+="<tr>";
-				htmlStr+="<td class='c'>"+field.etunimi+"</td>";
-				htmlStr+="<td class='c'>"+field.sukunimi+"</td>";
-				htmlStr+="<td class='c'>"+field.puhelin+"</td>";
-				htmlStr+="<td class='c'>"+field.sposti+"</td>";
+				htmlStr+="<tr id='rivi_"+field.asiakas_id+"'>";
+				htmlStr+="<td>"+field.etunimi+"</td>";
+				htmlStr+="<td>"+field.sukunimi+"</td>";
+				htmlStr+="<td>"+field.puhelin+"</td>";
+				htmlStr+="<td>"+field.sposti+"</td>";
+				htmlStr+="<td><span class='poista' onclick=poista('"+field.asiakas_id+"','"+field.etunimi+"','"+field.sukunimi+"')>Poista</span></td>";
 				htmlStr+="</tr>";
 				$("#listaus tbody").append(htmlStr);
 			});
 	}});
+}
+function poista (asiakas_id, etunimi, sukunimi){
+	if(confirm("Poista asiakas " + etunimi + " " + sukunimi + "?")){
+		$.ajax({url:"asiakkaat/"+asiakas_id, type:"DELETE", dataType:"json", success:function(result) { //result on joko {"response:1"} tai {"response:0"}
+	        if(result.response==0){
+	        	$("#ilmo").html("Asiakkaan poisto epäonnistui.");
+	        }else if(result.response==1){
+	        	$("#rivi_"+asiakas_id).css("background-color", "red"); //Värjätään poistetun asiakkaan rivi
+	        	//en saanut toimimaan
+	        	alert("Asiakkaan " + etunimi + " " + sukunimi + " poisto onnistui.");
+				haeAsiakkaat();        	
+			}
+	    }});
+	}
 }
 </script>
 </body>
